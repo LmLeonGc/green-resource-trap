@@ -3,6 +3,11 @@ import pandas as pd
 import wbgapi as wb
 from pathlib import Path
 
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("olade", Path(__file__).parent / "02_load_olade.py")
+olade = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(olade)
+
 # --- South American sample ---
 ISO3_SA = ["ARG","BOL","BRA","CHL","COL","ECU","GUY","PRY","PER","SUR","URY","VEN"]
 # --- Global reference anchors (NOT part of the typology; scale anchors only) ---
@@ -81,19 +86,22 @@ def assemble():
     master.index.name = "iso3"
     master["country"] = master.index.map(COUNTRY_NAMES)
     master["group"]   = ["South America" if c in ISO3_SA else "reference" for c in master.index]
-    master["f2_eci"]  = load_f2_eci()
-    f3, f3_flag       = load_f3_rents()
+
+    # F1 — OLADE fossil share (only South America; reference countries -> NaN)
+    f1_df = olade.load_f1_fossil("Matriz_balance_energetico.xlsx")
+    master["f1_fossil"] = f1_df["f1_fossil"]
+
+    master["f2_eci"]   = load_f2_eci()
+    f3, f3_flag        = load_f3_rents()
     master["f3_rents"] = f3
     master["f3_rents_imputed"] = f3_flag
-    master["f5_gov"]  = load_f5_governance()
-    # master["f1_fossil"] = load_f1_fossil()   # OLADE, pending
+    master["f5_gov"]   = load_f5_governance()
 
     master.to_csv(OUT / "master_table.csv")
     print(master.round(3).to_string())
-    print("\nMissing values per front:")
-    print(master[["f2_eci","f3_rents","f5_gov"]].isna().sum())
-    print("\nImputed F3 values:")
-    print(master.loc[master["f3_rents_imputed"], ["country","f3_rents"]].to_string())
+    print("\nMissing values per front (South America only):")
+    sa = master[master["group"] == "South America"]
+    print(sa[["f1_fossil","f2_eci","f3_rents","f5_gov"]].isna().sum())
     return master
 
 if __name__ == "__main__":
