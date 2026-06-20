@@ -1,0 +1,7 @@
+relation,var_x,var_y,spearman_rho,p_value,ci_low,ci_high,n,sig
+Complexity vs fossil share,f2_eci,f1_fossil,-0.364,0.245,-0.779,0.25,12,ns
+Complexity vs resource rents,f2_eci,f3_rents,-0.378,0.226,-0.693,0.131,12,ns
+Governance vs resource rents,f5_gov,f3_rents,-0.056,0.863,-0.723,0.6,12,ns
+Governance vs fossil share,f5_gov,f1_fossil,-0.392,0.208,-0.849,0.247,12,ns
+Complexity vs governance,f2_eci,f5_gov,0.657,0.02,0.153,0.898,12,**
+Capacity vs dependence (meta-axes),axis_capacity,axis_dependence,-0.357,0.255,-0.892,0.29,12,ns
