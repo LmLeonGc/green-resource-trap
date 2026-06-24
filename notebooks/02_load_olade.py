@@ -104,3 +104,15 @@ def load_f1_fossil(filename: str, year: int = YEAR) -> pd.DataFrame:
 if __name__ == "__main__":
     df = load_f1_fossil("Matriz_balance_energetico.xlsx")
     print("\n", df["f1_fossil"].sort_values(ascending=False))
+
+    # --- Regional aggregate fossil share (energy-weighted, NOT mean of shares) ---
+    total_fossil = df["fossil_primary"].sum() + df["deriv_net_import"].sum()
+    total_energy = df["denom"].sum()
+    regional_share = total_fossil / total_energy * 100
+    print(f"\n=== REGIONAL AGGREGATE (energy-weighted) ===")
+    print(f"Total fossil:  {total_fossil:,.0f} (10^3 bep)")
+    print(f"Total energy:  {total_energy:,.0f} (10^3 bep)")
+    print(f"Regional fossil share: {regional_share:.1f}%")
+
+    # Also the simple mean of country shares, for comparison
+    print(f"(Simple mean of country shares: {df['f1_fossil'].mean():.1f}%)")
