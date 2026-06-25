@@ -117,6 +117,15 @@ def _darken(hex_color, factor=0.62):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def _lighten(hex_color, factor=0.72):
+    """Return a lighter tint of a hex colour (blend toward white) for
+    legible, on-tone inline labels that are not pure white."""
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i+2], 16) for i in (0, 2, 4))
+    r, g, b = (int(c + (255 - c) * factor) for c in (r, g, b))
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
 def make_figure(df, group_cols, outfile):
     # ---- typography & canvas ------------------------------------------------
     plt.rcParams.update({
@@ -192,13 +201,15 @@ def make_figure(df, group_cols, outfile):
                 color="#111111")
 
     # ---- inline % labels on the big bands at selected years -----------------
-    # Subtle, integrated into each band (no halo, no bold) — matches reference.
+    # Each label is a light tint of its own band colour (not pure white), which
+    # keeps contrast on dark bands while staying on-tone.
+    skip_years = {df.index.min(), df.index.max()}  # crowded edges -> no labels
     for yr in LABEL_YEARS:
         if yr not in df.index:
             continue
-        # skip inline % on the final year — that share is already shown in the
-        # external right-hand labels, and printing it here collides with them
-        if yr == df.index.max():
+        # first year: thin bands crowd the left edge and white text disappears;
+        # last year: shares already shown in the external right-hand labels
+        if yr in skip_years:
             continue
         idx = df.index.get_loc(yr)
         xi = float(yr)
@@ -207,12 +218,10 @@ def make_figure(df, group_cols, outfile):
             if share < INLINE_PCT_MIN:
                 continue
             y_mid = (band_bottom[g][idx] + band_top[g][idx]) / 2.0
-            # light, slightly translucent text reads on every band tone
-            dark_bands = {"Oil", "Natural Gas", "Other", "Mineral Coal", "Hydropower"}
-            txt_color = "#f2f2f2" if g in dark_bands else "#5a2030"
-            x_off = (xmax - xmin) * 0.018   # nudge labels slightly to the right
+            txt_color = _lighten(GROUP_COLORS[g])   # light tint of the band tone
+            x_off = (xmax - xmin) * 0.018           # nudge slightly to the right
             ax.text(xi + x_off, y_mid, f"{share:.2f}%", ha="center", va="center",
-                    fontsize=12, fontweight="bold", color=txt_color, alpha=0.9)
+                    fontsize=12, fontweight="bold", color=txt_color)
 
     # ---- axis cosmetics -----------------------------------------------------
     ax.set_yticks([])                      # no y-axis ticks (matches the image)
@@ -241,3 +250,4 @@ if __name__ == "__main__":
     group_cols = list(GROUPS.keys())
     make_figure(df, group_cols, OUTF / "fig1_energy_matrix.png")
     print(f"\nSaved -> {OUTF/'fig1_energy_matrix.png'}")
+    
