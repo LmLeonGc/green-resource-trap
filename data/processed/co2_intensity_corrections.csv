@@ -1,0 +1,2 @@
+country,year,olade_co2_mt,final_consumption_ej,corrected_co2_g_mj,gcp_co2_mt,gcp_check_g_mj,final_consumption_2000_raw_ej,note
+Colombia,2000,56.96,0.9281,61.38,56.21,60.57,1.1742,"OLADE indicator gives 111 g/MJ (implies 0.51 EJ). 2000 final consumption in OLADE historical balance is an outlier (+27% vs mean 2001-02; FC/primary energy 1.04 vs 0.72-0.85 in other years); replaced by mean of 2001-02. CO2 from OLADE emissions release (10^3 t), cross-checked with Global Carbon Project."
