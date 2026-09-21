@@ -42,7 +42,8 @@ FS_YTICK, FS_XTICK, FS_LABEL, FS_LEGEND = 12, 11, 12, 11
 # still shows inside it when both years are almost equal)
 M0, M1 = "o", "^"
 S0, S1 = 42, 72           # scatter areas (pt^2)
-LW_MARK = 1.5
+LW_MARK = 1.0            # marker outline (frame is 0.6)
+LW_BAR = 1.7             # magnitude bar
 GAP_PT = 1.5               # gap between bar end and marker outline
 
 
@@ -119,7 +120,7 @@ def make_figure(tbl, outfile):
         if abs(x1 - x0) * pt_per_unit <= r0 + r1:
             continue                                   # markers touch: no bar
         ax.plot([x0 + sign * r0 / pt_per_unit, x1 - sign * r1 / pt_per_unit],
-                [y, y], color=GREY, lw=2.5, solid_capstyle="butt", zorder=2)
+                [y, y], color=GREY, lw=LW_BAR, solid_capstyle="butt", zorder=2)
     ax.scatter(a, ypos, s=S0, marker=M0, facecolors="none", edgecolors=GREY,
                linewidths=LW_MARK, zorder=3)          # Y0
     ax.scatter(b, ypos, s=S1, marker=M1, facecolors="none", edgecolors=GREY,
@@ -130,8 +131,10 @@ def make_figure(tbl, outfile):
     ax.set_xlabel(f"Emissions intensity of energy consumption\n(g {CO2E} per MJ)",
                   fontsize=FS_LABEL, color="#333333")
     ax.grid(False)
-    for sp in ax.spines.values():
-        sp.set_visible(False)
+    for sp in ax.spines.values():          # thin frame around the plotting area
+        sp.set_visible(True)
+        sp.set_linewidth(0.6)
+        sp.set_color(GREY)
     ax.tick_params(length=0)
     ax.tick_params(axis="x", labelsize=FS_XTICK)
 
