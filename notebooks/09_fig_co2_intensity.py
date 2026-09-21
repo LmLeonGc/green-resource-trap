@@ -33,7 +33,7 @@ NAMES = {"Brasil": "Brazil", "Perú": "Peru"}
 CO2E = "CO₂e"   # carbon dioxide equivalent: subscript 2 (reviewer request)
 
 GREY = "#3b3b3b"    # dark grey for bars and markers
-BG = "#FFFCFC"
+BG = "#FFFFFF"      # white; a transparent copy is saved next to it
 
 # font sizes (pt)
 FS_YTICK, FS_XTICK, FS_LABEL, FS_LEGEND = 12, 11, 12, 11
@@ -149,6 +149,8 @@ def make_figure(tbl, outfile):
               title_fontsize=FS_LEGEND, labelspacing=1.0, handletextpad=0.8)
 
     fig.savefig(outfile, dpi=200, facecolor=BG)
+    fig.savefig(outfile.with_name(outfile.stem + "_transparent.png"),
+                dpi=200, transparent=True)
     return fig
 
 
