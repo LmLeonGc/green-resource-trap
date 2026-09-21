@@ -35,6 +35,8 @@ CO2E = "CO₂e"   # carbon dioxide equivalent: subscript 2 (reviewer request)
 GREY = "#3b3b3b"    # dark grey for bars and markers
 BG = "#FFFFFF"      # white; a transparent copy is saved next to it
 
+DPI = 600                 # output resolution (journal line-art standard)
+
 # font sizes (pt)
 FS_YTICK, FS_XTICK, FS_LABEL, FS_LEGEND = 12, 11, 12, 11
 
@@ -148,9 +150,9 @@ def make_figure(tbl, outfile):
               bbox_to_anchor=(1.02, 0.5), fontsize=FS_LEGEND,
               title_fontsize=FS_LEGEND, labelspacing=1.0, handletextpad=0.8)
 
-    fig.savefig(outfile, dpi=200, facecolor=BG)
+    fig.savefig(outfile, dpi=DPI, facecolor=BG)
     fig.savefig(outfile.with_name(outfile.stem + "_transparent.png"),
-                dpi=200, transparent=True)
+                dpi=DPI, transparent=True)
     return fig
 
 
