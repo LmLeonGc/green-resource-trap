@@ -1,7 +1,8 @@
+import colorsys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import font_manager
+from matplotlib.ticker import MaxNLocator, FuncFormatter
 from pathlib import Path
 
 RAW = Path("data/raw")
@@ -35,23 +36,27 @@ GROUPS = {
 # ---- Visual style replicating the reference image (flat, opaque) ----------
 # Palette matched to the reference: very dark teal-navy fossil base ->
 # indigo -> blue-violet -> purple -> magenta -> coral -> light pink -> yellow.
+# Every adjacent pair is spaced in both lightness and hue (checked so no two
+# neighbours land within ~20 luma points of each other), same hue journey
+# and order as the reference, just pushed further apart.
 GROUP_COLORS = {
-    "Oil":              "#1a3a4a",  # very dark teal-navy (dense fossil base)
-    "Natural Gas":      "#2e3a6e",  # deep indigo
-    "Other":            "#4b4b8f",  # blue-violet
-    "Mineral Coal":     "#8a4a9e",  # purple
-    "Hydropower":       "#c0398f",  # magenta
-    "Biomass":          "#e8556b",  # coral / salmon-red (Firewood-like band)
-    "Nuclear":          "#f4a0c0",  # light pink
+    "Oil":              "#0b2532",  # very dark teal-navy (dense fossil base)
+    "Natural Gas":      "#1e3576",  # indigo
+    "Other":            "#4b419f",  # blue-violet
+    "Mineral Coal":     "#a54fc4",  # orchid-purple
+    "Hydropower":       "#c2298f",  # magenta
+    "Biomass":          "#e45864",  # coral / salmon-red (Firewood-like band)
+    "Nuclear":          "#f49ab8",  # light pink
     "Other renewables": "#f4d03f",  # solar/wind yellow
 }
-# Years that get a total "lollipop" on top and inline % labels.
-LABEL_YEARS = [1990, 2000, 2010, 2022]
-# X-axis tick labels (kept separate so the axis starts clean at 1990).
-XTICK_YEARS = [1990, 2000, 2010, 2022]
 UNIT = "10³ bep"          # keep the working unit (bep), not MJ
-INLINE_PCT_MIN = 5.0      # only annotate inline % for bands at/above this share
 BAND_ALPHA = 1.0          # flat, opaque bands (no transparency) — matches ref
+XTICK_STEP = 5            # regular x-axis grid, every 5 years
+
+# Typography: all axes (x years, both y-axes, axis titles) at one uniform size
+GREY = "#3b3b3b"
+FS_YTICK = FS_XTICK = FS_LABEL = 14
+N_Y_TICKS = 6              # left (%) and right (bep) magnitude axes
 
 
 def _norm(s): return str(s).strip().upper()
@@ -126,7 +131,21 @@ def _lighten(hex_color, factor=0.72):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def make_figure(df, group_cols, outfile):
+def _saturate(hex_color, s_target=1.0):
+    """Raise a colour's HSL saturation (same hue/lightness) before it goes
+    through _lighten(): blending straight toward white in RGB crushes
+    saturation fastest on dark, low-lightness colours (e.g. Oil), so they
+    come out grey instead of a pale tint of their own hue."""
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
+    hh, l, _ = colorsys.rgb_to_hls(r, g, b)
+    r2, g2, b2 = colorsys.hls_to_rgb(hh, l, s_target)
+    return f"#{round(r2*255):02x}{round(g2*255):02x}{round(b2*255):02x}"
+
+
+def make_figure(df, group_cols, outfile, light_fill=False, fill_factor=0.60):
+    """light_fill=True: pale tint fill per band + a boundary line in the
+    band's full colour (v2 experiment for telling adjacent bands apart)."""
     # ---- typography & canvas ------------------------------------------------
     plt.rcParams.update({
         "font.family": "DejaVu Sans",
@@ -136,15 +155,8 @@ def make_figure(df, group_cols, outfile):
     fig, ax = plt.subplots(figsize=(12.5, 6.0))
 
     x = df.index.values.astype(float)
-    colors = [GROUP_COLORS[g] for g in group_cols]
 
-    # ---- stacked area -------------------------------------------------------
-    stacks = ax.stackplot(
-        x, *[df[g].values for g in group_cols],
-        colors=colors, linewidth=0, edgecolor="none", alpha=BAND_ALPHA,
-    )
-
-    # cumulative tops for label placement
+    # ---- stacked area, cumulative tops for label placement -----------------
     cum = np.zeros_like(x, dtype=float)
     band_bottom = {}
     band_top = {}
@@ -154,89 +166,79 @@ def make_figure(df, group_cols, outfile):
         band_top[g] = cum.copy()
     total = cum  # == df["TOTAL"]
 
-    xmin, xmax = x.min(), x.max()
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(0, total.max() * 1.10)   # modest headroom for the top labels
-
-    # ---- external right-side labels (name + value + %) ----------------------
-    last = -1  # last year column
-    label_x = xmax + (xmax - xmin) * 0.012
-    # mid-height of each band at the final year, used as the anchor y
-    anchors = []
-    for g in group_cols:
-        y_mid = (band_bottom[g][last] + band_top[g][last]) / 2.0
-        anchors.append([g, y_mid])
-
-    # spread overlapping labels vertically so they don't collide
-    anchors.sort(key=lambda t: t[1])
-    min_gap = total.max() * 0.072
-    for i in range(1, len(anchors)):
-        if anchors[i][1] - anchors[i-1][1] < min_gap:
-            anchors[i][1] = anchors[i-1][1] + min_gap
-
-    for g, y in anchors:
-        val = df[g].values[last]
-        pct = val / total[last] * 100
-        ax.annotate(
-            f"{g}\n{_fmt_value(val)} {UNIT} ({pct:.2f}%)",
-            xy=(xmax, (band_bottom[g][last] + band_top[g][last]) / 2.0),
-            xytext=(label_x, y),
-            va="center", ha="left", fontsize=11, color=GROUP_COLORS[g],
-            fontweight="bold",
-            annotation_clip=False,
+    if light_fill:
+        # Oil is dark and low-lightness enough that blending it toward white
+        # crushes its saturation before the others (comes out grey, not
+        # pale blue) — pre-saturate just its fill source, not the boundary
+        # line or the legend colour, both of which are already fine.
+        fill_source = dict(GROUP_COLORS)
+        fill_source["Oil"] = _saturate(GROUP_COLORS["Oil"], 1.0)
+        for g in group_cols:
+            ax.fill_between(x, band_bottom[g], band_top[g],
+                             facecolor=_lighten(fill_source[g], fill_factor),
+                             edgecolor="none", zorder=1)
+            ax.plot(x, band_top[g], color=GROUP_COLORS[g], lw=1.6, zorder=2)
+    else:
+        ax.stackplot(
+            x, *[df[g].values for g in group_cols],
+            colors=[GROUP_COLORS[g] for g in group_cols],
+            linewidth=0, edgecolor="none", alpha=BAND_ALPHA,
         )
 
-    # ---- total "lollipops" on top at selected years -------------------------
-    # Line rises from the band top (the total, marked with a dot) up to the label.
-    for yr in LABEL_YEARS:
-        if yr not in df.index:
-            continue
-        xi = float(yr)
-        top = total[df.index.get_loc(yr)]
-        y_label = ax.get_ylim()[1] * 0.99
-        ax.plot([xi, xi], [top, y_label * 0.965], color="#222222", lw=1.2, zorder=5)
-        ax.scatter([xi], [top], color="#222222", s=22, zorder=6)
-        ax.text(xi, y_label, f"{_fmt_value(total[df.index.get_loc(yr)])} {UNIT}",
-                ha="center", va="bottom", fontsize=12, fontweight="bold",
-                color="#111111")
+    xmin, xmax = x.min(), x.max()
+    ax.set_xlim(xmin, xmax)
+    ymax = total.max() * 1.04            # slim headroom (no top labels anymore)
+    ax.set_ylim(0, ymax)
 
-    # ---- inline % labels on the big bands at selected years -----------------
-    # Each label is a light tint of its own band colour (not pure white), which
-    # keeps contrast on dark bands while staying on-tone.
-    skip_years = {df.index.min(), df.index.max()}  # crowded edges -> no labels
-    for yr in LABEL_YEARS:
-        if yr not in df.index:
-            continue
-        # first year: thin bands crowd the left edge and white text disappears;
-        # last year: shares already shown in the external right-hand labels
-        if yr in skip_years:
-            continue
-        idx = df.index.get_loc(yr)
-        xi = float(yr)
-        for g in group_cols:
-            share = df[g].values[idx] / total[idx] * 100
-            if share < INLINE_PCT_MIN:
-                continue
-            y_mid = (band_bottom[g][idx] + band_top[g][idx]) / 2.0
-            txt_color = _lighten(GROUP_COLORS[g])   # light tint of the band tone
-            x_off = (xmax - xmin) * 0.018           # nudge slightly to the right
-            ax.text(xi + x_off, y_mid, f"{share:.2f}%", ha="center", va="center",
-                    fontsize=12, fontweight="bold", color=txt_color)
+    # Fuel-type labels (name, value, %) removed — added by hand afterwards.
 
     # ---- axis cosmetics -----------------------------------------------------
-    ax.set_yticks([])                      # no y-axis ticks (matches the image)
-    xticks = [y for y in XTICK_YEARS if xmin <= y <= xmax]
+    # regular grid every XTICK_STEP years, plus the last data year even if it
+    # falls off that grid (e.g. …2010, 2020, 2024)
+    first_grid = int(np.ceil(xmin / XTICK_STEP) * XTICK_STEP)
+    xticks = list(range(first_grid, int(xmax) + 1, XTICK_STEP))
+    if xmin not in xticks and xmin == int(xmin):
+        xticks.insert(0, int(xmin))
+    last_year = int(xmax)
+    if last_year not in xticks:
+        # drop the nearest regular tick instead of crowding it against the
+        # last-year label (e.g. …2010, 2024 rather than …2010, 2020, 2024)
+        if xticks and (last_year - xticks[-1]) < XTICK_STEP / 2:
+            xticks.pop()
+        xticks.append(last_year)
     ax.set_xticks(xticks)
-    ax.set_xticklabels([str(y) for y in xticks], fontsize=17, fontweight="bold",
-                       color="#222222")
-    for spine in ["top", "right", "left"]:
-        ax.spines[spine].set_visible(False)
-    ax.spines["bottom"].set_color("#888888")
+    ax.set_xticklabels([str(y) for y in xticks], fontsize=FS_XTICK, color=GREY)
     ax.tick_params(axis="x", length=0)
     ax.margins(x=0)
 
-    # leave room on the right for the external labels
-    fig.subplots_adjust(left=0.02, right=0.78, top=0.92, bottom=0.08)
+    # left axis: absolute magnitude, the only y-axis (the % twin axis was
+    # dropped — it read as confusing rather than clarifying). The working
+    # unit is already 10³ bep, so dividing by another 10³ (-> 10⁶ bep) keeps
+    # the tick numbers short.
+    BEP_DIVISOR, BEP_UNIT = 1_000, "10⁶ bep"
+    ax.yaxis.set_label_position("left")
+    ax.yaxis.tick_left()
+    # same "nice" ticks MaxNLocator would pick, minus 0 (redundant — the
+    # bottom spine already marks the baseline)
+    bep_ticks = [v for v in MaxNLocator(nbins=N_Y_TICKS).tick_values(0, ymax)
+                 if 0 < v <= ymax]
+    ax.set_yticks(bep_ticks)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v / BEP_DIVISOR:,.0f}"))
+    ax.tick_params(axis="y", length=3, labelsize=FS_YTICK, colors=GREY)
+    # standard rotated y-axis title, vertically centred on the axis (now
+    # safe to use — the composition labels it used to collide with are gone)
+    ax.set_ylabel(f"Energy supply ({BEP_UNIT})", fontsize=FS_LABEL, color=GREY,
+                  labelpad=12)
+
+    # thin frame around the whole plotting area (matches notebooks/09)
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color(GREY)
+        spine.set_linewidth(0.8)
+
+    # leave room on the left for the rotated axis title; no reserved gutter
+    # on the right now that the fuel-type labels are added by hand afterwards
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.96, bottom=0.09)
     fig.savefig(outfile, dpi=200, bbox_inches="tight", facecolor="white")
     return fig
 
@@ -250,4 +252,8 @@ if __name__ == "__main__":
     group_cols = list(GROUPS.keys())
     make_figure(df, group_cols, OUTF / "fig1_energy_matrix.png")
     print(f"\nSaved -> {OUTF/'fig1_energy_matrix.png'}")
+
+    # v2 experiment: pale band fill + boundary line in the band's full colour
+    make_figure(df, group_cols, OUTF / "fig1_energy_matrix_v2.png", light_fill=True)
+    print(f"Saved -> {OUTF/'fig1_energy_matrix_v2.png'}")
     
