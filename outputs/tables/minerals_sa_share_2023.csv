@@ -1,0 +1,31 @@
+mineral,country,production_2023e,reserves,unit,prod_share_pct,reserve_share_pct
+Copper,Argentina,0,0,thousand metric tons (Cu content),0.0,0.0
+Copper,Bolivia,0,0,thousand metric tons (Cu content),0.0,0.0
+Copper,Brazil,0,0,thousand metric tons (Cu content),0.0,0.0
+Copper,Chile,5000,190000,thousand metric tons (Cu content),22.727,19.0
+Copper,Peru,2600,120000,thousand metric tons (Cu content),11.818,12.0
+Graphite,Argentina,0,0,metric tons,0.0,0.0
+Graphite,Bolivia,0,0,metric tons,0.0,0.0
+Graphite,Brazil,73000,74000000,metric tons,4.562,26.429
+Graphite,Chile,0,0,metric tons,0.0,0.0
+Graphite,Peru,0,0,metric tons,0.0,0.0
+Lithium,Argentina,9600,3600000,metric tons (Li content),5.333,12.857
+Lithium,Bolivia,0,0,metric tons (Li content),0.0,0.0
+Lithium,Brazil,4900,390000,metric tons (Li content),2.722,1.393
+Lithium,Chile,44000,9300000,metric tons (Li content),24.444,33.214
+Lithium,Peru,0,0,metric tons (Li content),0.0,0.0
+Nickel,Argentina,0,0,metric tons (Ni content),0.0,0.0
+Nickel,Bolivia,0,0,metric tons (Ni content),0.0,0.0
+Nickel,Brazil,89000,16000000,metric tons (Ni content),2.472,12.308
+Nickel,Chile,0,0,metric tons (Ni content),0.0,0.0
+Nickel,Peru,0,0,metric tons (Ni content),0.0,0.0
+Rare earths,Argentina,0,0,metric tons (REO equivalent),0.0,0.0
+Rare earths,Bolivia,0,0,metric tons (REO equivalent),0.0,0.0
+Rare earths,Brazil,80,21000000,metric tons (REO equivalent),0.023,19.091
+Rare earths,Chile,0,0,metric tons (REO equivalent),0.0,0.0
+Rare earths,Peru,0,0,metric tons (REO equivalent),0.0,0.0
+Silver,Argentina,910,6500,metric tons (Ag content),3.5,1.066
+Silver,Bolivia,1200,22000,metric tons (Ag content),4.615,3.607
+Silver,Brazil,0,0,metric tons (Ag content),0.0,0.0
+Silver,Chile,1400,26000,metric tons (Ag content),5.385,4.262
+Silver,Peru,3100,110000,metric tons (Ag content),11.923,18.033

@@ -80,3 +80,41 @@
 - Indicators: GE.EST, RL.EST, RQ.EST (government effectiveness, rule of law, regulatory quality)
 - Aggregation: simple mean of the three estimates
 - Year used: 2022
+
+## Critical minerals: SA share of world production and reserves (notebooks/11_fig_minerals.py)
+- File: data/processed/minerals_usgs_mcs2024.csv (committed — hand-transcribed from the
+  public PDFs below, not a private download, so it doesn't follow the data/raw pattern).
+- Replaces the R version (manipulaciondata.R, l. 155-178), which read a
+  `Minerals.xlsx` that only existed on the old machine (Downloads folder) and was never
+  copied anywhere durable — not recoverable, so this rebuilds the table from the original
+  public source instead.
+- Source: USGS Mineral Commodity Summaries 2024 (data as of Jan. 2024, mine production
+  is the 2023 estimate), one PDF per commodity:
+  https://pubs.usgs.gov/periodicals/mcs2024/mcs2024-{copper,graphite,lithium,nickel,
+  rare-earths,silver}.pdf — each has a "World Mine Production and Reserves" table.
+  Silver's world reserves total carries a March 5, 2024 USGS correction (610,000 t,
+  marked with * in the source table); used here since it's the standing figure.
+- Method (matches the R script exactly — cross-checked, see below): per mineral,
+  each SA country's bar segment = its 2023e mine production / world 2023e mine
+  production; the black dot = the summed reserves of the SA countries with any
+  production, as a share of world reserves. Countries with no reported production
+  contribute 0 (most minerals: only 1-4 of the 5 countries produce it at all).
+- Values used (mine production 2023e; reserves) — Argentina, Bolivia, Brazil, Chile,
+  Peru; "—" = not in the source table, treated as 0:
+  - Copper (thousand t Cu): Chile 5,000; 190,000 · Peru 2,600; 120,000 · World 22,000; 1,000,000
+  - Graphite (t): Brazil 73,000; 74,000,000 · World 1,600,000; 280,000,000
+  - Lithium (t Li): Argentina 9,600; 3,600,000 · Brazil 4,900; 390,000 ·
+    Chile 44,000; 9,300,000 · World 180,000; 28,000,000
+  - Nickel (t Ni): Brazil 89,000; 16,000,000 · World 3,600,000; 130,000,000
+  - Rare earths (t REO eq.): Brazil 80; 21,000,000 · World 350,000; 110,000,000
+  - Silver (t Ag): Argentina 910; 6,500 · Bolivia 1,200; 22,000 · Chile 1,400; 26,000 ·
+    Peru 3,100; 110,000 · World 26,000; 610,000
+- Cross-check against the old reference figure (screenshot of the R output, no
+  underlying data file): recomputed bar totals and dot values from the table above
+  reproduce the reference chart almost exactly — e.g. Copper bar 34.5% (image ~34.5%),
+  dot 31.0% (~31%); Lithium bar 32.5% (~32.5%), dot 47.5% (~47%); Nickel bar 2.5%
+  (~2.5%), dot 12.3% (~12%); Rare earths bar ~0.02% (negligible, as in the image), dot
+  19.1% (~19%); Graphite bar 4.6% (~4.5%), dot 26.4% (~26.5%); Silver bar 25.4%
+  (~26%), dot 27.0% (image read ~23%, the one visible gap — likely just imprecision
+  reading a dot position off a static screenshot, or the pre-March-2024-correction
+  silver reserves total; not re-derivable without the original file).
