@@ -50,10 +50,17 @@ print("\n--- Cross-tab type vs hierarchical cluster ---")
 print(pd.crosstab(sa["type"], sa["cluster_hc"]))
 sa.to_csv(OUTT / "typology.csv")
 
-# Figure
-fig, ax = plt.subplots(figsize=(9, 7))
-ax.axvline(0, color="grey", lw=0.8, ls="--")
-ax.axhline(0, color="grey", lw=0.8, ls="--")
+# Figure — same parameters as notebooks 08-11: DejaVu Sans, grey #3b3b3b,
+# thin frame, matched axis text size, 600 dpi + SVG. No legend: each
+# quadrant is named directly in its own corner instead (colored to match
+# its points), so identity doesn't rely on a separate color key.
+GREY = "#3b3b3b"
+FS_TICK, FS_LABEL = 13, 14
+plt.rcParams.update({"font.family": "DejaVu Sans", "text.color": "#222222"})
+
+fig, ax = plt.subplots(figsize=(9, 7), facecolor="white")
+ax.axvline(0, color=GREY, lw=0.8, ls="--", zorder=1)
+ax.axhline(0, color=GREY, lw=0.8, ls="--", zorder=1)
 colors = {
     "Green resource trap":   "#b2182b",
     "Managed extraction":    "#ef8a62",
@@ -62,15 +69,41 @@ colors = {
 }
 for t, g in sa.groupby("type"):
     ax.scatter(g["axis_dependence"], g["axis_capacity"], s=130,
-               color=colors[t], label=t, edgecolor="black", zorder=3)
+               color=colors[t], edgecolor="black", zorder=3)
 for iso3, r in sa.iterrows():
-    style = "italic" if r["border_case"] else "normal"
     ax.annotate(iso3, (r["axis_dependence"], r["axis_capacity"]),
-                xytext=(4,4), textcoords="offset points", fontsize=9, style=style)
-ax.set_xlabel("Extractive dependence  (fossil share + resource rents, z)")
-ax.set_ylabel("Transformation capacity  (complexity + governance, z)")
-ax.set_title("South America's energy-transition typology\n(green resource trap framework)")
-ax.legend(loc="upper right", fontsize=8, framealpha=0.9)
+                xytext=(4,4), textcoords="offset points", fontsize=10,
+                color=GREY, zorder=4)
+
+# quadrant name, bottom-anchored in its own quadrant: the two left-side
+# names bottom-left aligned, the two right-side names bottom-right aligned
+# (data coords, so it holds position regardless of the data's actual range)
+QUADRANT_FS = FS_LABEL - 1
+xmin, xmax = ax.get_xlim()
+ymin, ymax = ax.get_ylim()
+pad_x = (xmax - xmin) * 0.02
+pad_y = (ymax - ymin) * 0.02
+quadrant_pos = {
+    "Diversifying":           (xmin + pad_x, 0 + pad_y,    "left",  "bottom"),
+    "Managed extraction":     (xmax - pad_x, 0 + pad_y,    "right", "bottom"),
+    "Constrained transition": (xmin + pad_x, ymin + pad_y, "left",  "bottom"),
+    "Green resource trap":    (xmax - pad_x, ymin + pad_y, "right", "bottom"),
+}
+for t, (x, y, ha, va) in quadrant_pos.items():
+    ax.text(x, y, t, ha=ha, va=va,
+            fontsize=QUADRANT_FS, fontweight="bold", color=colors[t], zorder=5)
+
+ax.set_xlabel("Extractive dependence  (fossil share + resource rents, z)",
+              fontsize=FS_LABEL, color=GREY)
+ax.set_ylabel("Transformation capacity  (complexity + governance, z)",
+              fontsize=FS_LABEL, color=GREY)
+ax.tick_params(colors=GREY, labelsize=FS_TICK, length=3)
+for spine in ax.spines.values():
+    spine.set_visible(True)
+    spine.set_color(GREY)
+    spine.set_linewidth(0.8)
+
 fig.tight_layout()
-fig.savefig(OUTF / "typology_2x2.png", dpi=200)
-print(f"\nSaved -> {OUTF/'typology_2x2.png'}")
+fig.savefig(OUTF / "typology_2x2.png", dpi=600, facecolor="white")
+fig.savefig(OUTF / "typology_2x2.svg", facecolor="white")
+print(f"\nSaved -> {OUTF/'typology_2x2.png'}, {OUTF/'typology_2x2.svg'}")
