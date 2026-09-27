@@ -1,0 +1,11 @@
+sector,MtCO2e,pct,cum_end,cum_start
+"Land Use, Land-Use Change and Forestry",1312.12,35.96,1312.12,0.0
+Agriculture,976.76,26.77,2288.88,1312.12
+Transportation,440.99,12.08,2729.87,2288.88
+Fugitive Emissions,230.87,6.33,2960.74,2729.87
+Electricity/Heat,228.0,6.25,3188.74,2960.74
+Manufacturing/Construction,175.74,4.82,3364.48,3188.74
+Industrial Processes,111.54,3.06,3476.02,3364.48
+Building,90.25,2.47,3566.27,3476.02
+Other Fuel Combustion,46.18,1.27,3612.45,3566.27
+Bunker Fuels,36.73,1.01,3649.18,3612.45

@@ -33,12 +33,10 @@ NAMES = {"Brasil": "Brazil", "Perú": "Peru"}
 CO2E = "CO₂e"   # carbon dioxide equivalent: subscript 2 (reviewer request)
 
 GREY = "#3b3b3b"    # dark grey for bars and markers
-BG = "#FFFFFF"      # white; a transparent copy is saved next to it
-
-DPI = 600                 # output resolution (journal line-art standard)
+BG = "#FFFCFC"
 
 # font sizes (pt)
-FS_YTICK, FS_XTICK, FS_LABEL, FS_LEGEND = 12, 11, 12, 11
+FS_YTICK, FS_XTICK, FS_LABEL, FS_LEGEND = 13, 12, 13, 12
 
 # hollow markers: 2000 = circle, 2022 = triangle (larger, so the circle
 # still shows inside it when both years are almost equal)
@@ -100,8 +98,8 @@ def build_table():
 
 def make_figure(tbl, outfile):
     plt.rcParams.update({"font.family": "DejaVu Sans", "text.color": "#222222"})
-    fig, ax = plt.subplots(figsize=(10, 5.2), facecolor=BG)
-    ax.set_facecolor(BG)
+    fig, ax = plt.subplots(figsize=(10, 5.2), facecolor='none')
+    ax.set_facecolor('none')
     fig.subplots_adjust(left=0.12, right=0.86, top=0.96, bottom=0.17)
 
     n = len(tbl)
@@ -150,9 +148,9 @@ def make_figure(tbl, outfile):
               bbox_to_anchor=(1.02, 0.5), fontsize=FS_LEGEND,
               title_fontsize=FS_LEGEND, labelspacing=1.0, handletextpad=0.8)
 
-    fig.savefig(outfile, dpi=DPI, facecolor=BG)
-    fig.savefig(outfile.with_name(outfile.stem + "_transparent.png"),
-                dpi=DPI, transparent=True)
+    fig.savefig(outfile, dpi=300, transparent=True)
+    fig.savefig(outfile.with_suffix(".svg"), transparent=True)  # vector copy
+
     return fig
 
 
@@ -164,4 +162,4 @@ if __name__ == "__main__":
     table_path = OUTT / f"co2_intensity_{Y0}_{Y1}.csv"
     tbl.round(3).to_csv(table_path)
     make_figure(tbl, OUTF / "fig_co2_intensity.png")
-    print(f"\nSaved -> {OUTF/'fig_co2_intensity.png'}, {table_path}")
+    print(f"\nSaved -> {OUTF/'fig_co2_intensity.png'}, {OUTF/'fig_co2_intensity.svg'}, {table_path}")
