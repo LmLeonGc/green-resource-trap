@@ -50,7 +50,9 @@ GROUP_COLORS = {
     "Other renewables": "#f4d03f",  # solar/wind yellow
 }
 UNIT = "10³ bep"          # keep the working unit (bep), not MJ
-BAND_ALPHA = 1.0          # flat, opaque bands (no transparency) — matches ref
+FILL_ALPHA = 0.75         # fill only: a touch of transparency (~25%); the
+                          # boundary line of each band stays fully opaque,
+                          # in the band's own (not lightened) color
 XTICK_STEP = 5            # regular x-axis grid, every 5 years
 
 # Typography: all axes (x years, both y-axes, axis titles) at one uniform size
@@ -179,11 +181,14 @@ def make_figure(df, group_cols, outfile, light_fill=False, fill_factor=0.60):
                              edgecolor="none", zorder=1)
             ax.plot(x, band_top[g], color=GROUP_COLORS[g], lw=1.6, zorder=2)
     else:
-        ax.stackplot(
-            x, *[df[g].values for g in group_cols],
-            colors=[GROUP_COLORS[g] for g in group_cols],
-            linewidth=0, edgecolor="none", alpha=BAND_ALPHA,
-        )
+        # fill: the band's own color, at FILL_ALPHA (a touch of transparency).
+        # boundary line: same color, fully opaque (not affected by the fill's
+        # alpha) — drawn on top so it stays crisp where bands meet.
+        for g in group_cols:
+            ax.fill_between(x, band_bottom[g], band_top[g],
+                             facecolor=GROUP_COLORS[g], alpha=FILL_ALPHA,
+                             edgecolor="none", zorder=1)
+            ax.plot(x, band_top[g], color=GROUP_COLORS[g], lw=1.2, zorder=2)
 
     xmin, xmax = x.min(), x.max()
     ax.set_xlim(xmin, xmax)
@@ -239,7 +244,8 @@ def make_figure(df, group_cols, outfile, light_fill=False, fill_factor=0.60):
     # leave room on the left for the rotated axis title; no reserved gutter
     # on the right now that the fuel-type labels are added by hand afterwards
     fig.subplots_adjust(left=0.10, right=0.98, top=0.96, bottom=0.09)
-    fig.savefig(outfile, dpi=200, bbox_inches="tight", facecolor="white")
+    fig.savefig(outfile, dpi=600, bbox_inches="tight", facecolor="white")
+    fig.savefig(outfile.with_suffix(".svg"), bbox_inches="tight", facecolor="white")
     return fig
 
 
