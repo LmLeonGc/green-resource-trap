@@ -71,8 +71,8 @@ for t, g in sa.groupby("type"):
     ax.scatter(g["axis_dependence"], g["axis_capacity"], s=130,
                color=colors[t], edgecolor="black", zorder=3)
 for iso3, r in sa.iterrows():
-    ax.annotate(iso3, (r["axis_dependence"], r["axis_capacity"]),
-                xytext=(4,4), textcoords="offset points", fontsize=10,
+    ax.annotate(str(r["country"]).title(), (r["axis_dependence"], r["axis_capacity"]),
+                xytext=(4,4), textcoords="offset points", fontsize=11,
                 color=GREY, zorder=4)
 
 # quadrant name, bottom-anchored in its own quadrant: the two left-side
