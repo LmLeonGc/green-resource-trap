@@ -70,9 +70,28 @@ colors = {
 for t, g in sa.groupby("type"):
     ax.scatter(g["axis_dependence"], g["axis_capacity"], s=130,
                color=colors[t], edgecolor="black", zorder=3)
+# extra margin (default autoscale is ~5%): the outward-pushed country labels
+# on the extremal points (Paraguay, Guyana) need more room than that on the
+# x side specifically, or their label touches the left/right plot border
+ax.margins(x=0.13, y=0.10)
+# Argentina/Brazil/Colombia sit close together in the upper-left quadrant;
+# pushed below-left instead of above-left, so their labels read as a
+# staircase under the points rather than crowding above them
+BELOW_LEFT = {"argentina", "brazil", "colombia"}
 for iso3, r in sa.iterrows():
-    ax.annotate(str(r["country"]).title(), (r["axis_dependence"], r["axis_capacity"]),
-                xytext=(4,4), textcoords="offset points", fontsize=11,
+    dep, cap = r["axis_dependence"], r["axis_capacity"]
+    # push the label diagonally AWAY from the origin (the dashed quadrant
+    # lines cross at 0,0), not just up-right — so it clears whichever line
+    # the point sits closest to, on either side, instead of risking a
+    # label that straddles one of them. Kept modest: in a tight cluster,
+    # pushing labels too far makes it ambiguous which point each belongs to.
+    dx, dy = (6 if dep >= 0 else -6), (5 if cap >= 0 else -5)
+    if str(r["country"]).strip().lower() in BELOW_LEFT:
+        dx, dy = -6, -5
+    ax.annotate(str(r["country"]).title(), (dep, cap),
+                xytext=(dx, dy), textcoords="offset points", fontsize=11,
+                ha=("left" if dx > 0 else "right"),
+                va=("bottom" if dy > 0 else "top"),
                 color=GREY, zorder=4)
 
 # quadrant name, bottom-anchored in its own quadrant: the two left-side
