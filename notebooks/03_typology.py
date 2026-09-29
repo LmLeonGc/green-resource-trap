@@ -92,7 +92,7 @@ for iso3, r in sa.iterrows():
                 xytext=(dx, dy), textcoords="offset points", fontsize=11,
                 ha=("left" if dx > 0 else "right"),
                 va=("bottom" if dy > 0 else "top"),
-                color=GREY, zorder=4)
+                color=GREY, fontweight="bold", zorder=4)
 
 # quadrant name, bottom-anchored in its own quadrant: the two left-side
 # names bottom-left aligned, the two right-side names bottom-right aligned
