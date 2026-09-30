@@ -73,7 +73,7 @@ for t, g in sa.groupby("type"):
 # extra margin (default autoscale is ~5%): the outward-pushed country labels
 # on the extremal points (Paraguay, Guyana) need more room than that on the
 # x side specifically, or their label touches the left/right plot border
-ax.margins(x=0.13, y=0.10)
+ax.margins(x=0.17, y=0.10)
 # Argentina/Brazil/Colombia sit close together in the upper-left quadrant;
 # pushed below-left instead of above-left, so their labels read as a
 # staircase under the points rather than crowding above them
