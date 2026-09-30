@@ -93,7 +93,7 @@ for iso3, r in sa.iterrows():
     dx, dy = (6 if dep >= 0 else -6), (5 if cap >= 0 else -5)
     ha, va = ("left" if dx > 0 else "right"), ("bottom" if dy > 0 else "top")
     if name in BELOW_LEFT:
-        dx, dy = -6, -5
+        dx, dy = -8, -10
     elif name in CENTERED_BELOW:
         dx, dy, ha, va = 0, -10, "center", "top"
     ax.annotate(str(r["country"]).title(), (dep, cap),
