@@ -78,21 +78,27 @@ ax.margins(x=0.17, y=0.10)
 # pushed below-left instead of above-left, so their labels read as a
 # staircase under the points rather than crowding above them
 BELOW_LEFT = {"argentina", "brazil", "colombia"}
+# Paraguay is the leftmost point (closest to the border even with the
+# extra margin above) — centered straight below its marker instead of
+# diagonal, so its label doesn't need any extra horizontal room
+CENTERED_BELOW = {"paraguay"}
 for iso3, r in sa.iterrows():
     dep, cap = r["axis_dependence"], r["axis_capacity"]
+    name = str(r["country"]).strip().lower()
     # push the label diagonally AWAY from the origin (the dashed quadrant
     # lines cross at 0,0), not just up-right — so it clears whichever line
     # the point sits closest to, on either side, instead of risking a
     # label that straddles one of them. Kept modest: in a tight cluster,
     # pushing labels too far makes it ambiguous which point each belongs to.
     dx, dy = (6 if dep >= 0 else -6), (5 if cap >= 0 else -5)
-    if str(r["country"]).strip().lower() in BELOW_LEFT:
+    ha, va = ("left" if dx > 0 else "right"), ("bottom" if dy > 0 else "top")
+    if name in BELOW_LEFT:
         dx, dy = -6, -5
+    elif name in CENTERED_BELOW:
+        dx, dy, ha, va = 0, -10, "center", "top"
     ax.annotate(str(r["country"]).title(), (dep, cap),
                 xytext=(dx, dy), textcoords="offset points", fontsize=11,
-                ha=("left" if dx > 0 else "right"),
-                va=("bottom" if dy > 0 else "top"),
-                color=GREY, fontweight="bold", zorder=4)
+                ha=ha, va=va, color=GREY, fontweight="bold", zorder=4)
 
 # quadrant name, bottom-anchored in its own quadrant: the two left-side
 # names bottom-left aligned, the two right-side names bottom-right aligned
