@@ -220,7 +220,7 @@ def make_figure(df, group_cols, outfile, light_fill=False, fill_factor=0.60):
     # dropped — it read as confusing rather than clarifying). The working
     # unit is already 10³ bep, so dividing by another 10³ (-> 10⁶ bep) keeps
     # the tick numbers short.
-    BEP_DIVISOR, BEP_UNIT = 1_000, "10⁶ bep"
+    BEP_DIVISOR, BEP_UNIT = 1_000, "10⁶ boe"
     ax.yaxis.set_label_position("left")
     ax.yaxis.tick_left()
     # same "nice" ticks MaxNLocator would pick, minus 0 (redundant — the
